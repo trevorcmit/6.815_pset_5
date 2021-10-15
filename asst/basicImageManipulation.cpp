@@ -19,7 +19,16 @@ Image scaleNN(const Image &im, float factor) {
   // --------- HANDOUT  PS05 ------------------------------
   // create a new image that is factor times bigger than the input by using
   // nearest neighbor interpolation.
-  return im;
+  Image output(floor(im.width() * factor), floor(im.height() * factor), im.channels()); // Scale by floor(factor)
+
+  for (int h = 0; h < output.height(); h++) {
+    for (int w = 0; w < output.width(); w++) {
+      for (int c = 0; c < output.channels(); c++) {
+        output(w, h, c) = im(floor(w / factor), floor(h / factor), c);
+      }
+    }
+  }
+  return output; // Return output image
 }
 
 float interpolateLin(const Image &im, float x, float y, int z, bool clamp) {

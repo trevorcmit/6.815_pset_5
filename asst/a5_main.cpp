@@ -169,8 +169,9 @@ void testMorph() {
 // We will only grade the contents of morphing.cpp and
 // basicImageManipulation.cpp
 int main() {
-  cout << "nothing done in a5_main.cpp, debug me !" << endl;
-  // testNearestNeighbor();
+  clock_t start = clock();
+  // cout << "nothing done in a5_main.cpp, debug me !" << endl;
+  testNearestNeighbor();
   // testBilinearInterpolation();
   // testBilinearRescaling();
   // testRotation();
@@ -179,4 +180,9 @@ int main() {
   // testWarpBy1();
   // testWarp();
   // testMorph();
+
+  clock_t end = clock();
+  double duration = (end - start) * 1.0f / CLOCKS_PER_SEC;
+  cout << "a5_main.cpp runtime: " << duration << "s" << endl;
+  return 0;
 }
