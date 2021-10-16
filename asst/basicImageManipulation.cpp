@@ -75,21 +75,21 @@ Image scaleBicubic(const Image &im, float factor, float B, float C) {
   // a bicubic filter kernel with Mitchell and Netravali's parametrization
   // see "Reconstruction filters in computer graphics", Mitchell and Netravali
   // 1988 or http://entropymine.com/imageworsener/bicubic/
-
   Image output(floor(im.width() * factor), floor(im.height() * factor), im.channels()); // Scale by floor(factor)
   for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
     for (int w = 0; w < output.width(); w++) {
       for (int c = 0; c < output.channels(); c++) {
 
-        float sum;
-        int min_x = floor(w/factor), min_y = floor(h/factor);
+        float sum = 0.0f;
+        int adj_x = floor(w/factor), adj_y = floor(h/factor); // Find integer center to iterate over
 
-        for (int x = min_x - 3; x <= min_x + 3; x++) {
-          for (int y = min_y - 3; x <= min_y + 3; x++) {
+        for (int x = adj_x - 3; x <= adj_x + 3; x++) { // Iterate over extra cells to make sure all are accounted for
+          for (int y = adj_y - 3; y <= adj_y + 3; y++) {
 
-            float x_dist = abs(w/factor - x), y_dist = abs(h/factor - y);
+            float x_dist = abs(w/factor - x), y_dist = abs(h/factor - y); // Distance from cell to cell in kernel
             float k_x, k_y;
 
+            // Apply formula in the X direction
             if (x_dist < 1) {
               k_x = (12 - 9*B - 6*C)*pow(x_dist,3) + (-18 + 12*B + 6*C)*pow(x_dist,2) + (6 - 2*B);
             }
@@ -100,7 +100,8 @@ Image scaleBicubic(const Image &im, float factor, float B, float C) {
               k_x = 0.0f;
             }
 
-            if (y_dist < 1) {
+            // Apply formula in the Y direction
+            if (y_dist < 1) { 
               k_y = (12 - 9*B - 6*C)*pow(y_dist,3) + (-18 + 12*B + 6*C)*pow(y_dist,2) + (6 - 2*B);
             }
             else if (y_dist < 2 && 1 <= y_dist) {
@@ -109,12 +110,10 @@ Image scaleBicubic(const Image &im, float factor, float B, float C) {
             else {
               k_y = 0.0f;
             }
-
-            sum += (1/36) * k_x * k_y * im.smartAccessor(x, y, c, true);
+            sum += (1.0f/36.0f) * k_x * k_y * im.smartAccessor(x, y, c, true); // Multiply weights by pixel value
           }
         }
-
-        output(w, h, c) = sum;
+        output(w, h, c) = sum; // Add summation to pixel 
       }
     }
   }
@@ -134,17 +133,25 @@ Image scaleLanczos(const Image &im, float factor, float a) {
 Image rotate(const Image &im, float theta) {
   // --------- HANDOUT  PS05 ------------------------------
   // rotate an image around its center by theta
-  // // center around which to rotate
-  float centerX = (im.width()-1.0)/2.0; // Initialize center values as coordinates (x,y)
-  float centerY = (im.height()-1.0)/2.0;
-  Image output(im.width(), im.height(), im.channels());
+  // center around which to rotate
+  float centerX = (im.width()-1.0) / 2.0f; // Initialize center values as coordinates (x,y)
+  float centerY = (im.height()-1.0) / 2.0f;
+  Image output(im.width(), im.height(), im.channels()); // Initialize output of the same size
+  output.set_color(); // Set to all black for each channel
 
   for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
     for (int w = 0; w < output.width(); w++) {
-      for (int c = 0; c < output.channels(); c++) {
 
-        
+      float magnitude = sqrt(pow(w - centerX, 2) + pow(h - centerY, 2)); // Distance from current pixel to center
 
+      float theta_new = acos((w - centerX) / magnitude); // Original angle of current point
+
+      float theta_0 = theta_new - theta; // Make new angle for new point
+
+      float x_0 = magnitude * cos(theta_0) + centerX, y_0 = magnitude * sin(theta_0) + centerY; // Coordinates from original image
+
+      for (int c = 0; c < im.channels(); c++) {
+        output(w, h, c) = interpolateLin(im, x_0, y_0, c, false);
       }
     }
   }

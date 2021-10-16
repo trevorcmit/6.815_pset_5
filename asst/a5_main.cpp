@@ -74,7 +74,8 @@ void testBicubicRescaling() {
 void testRotation() {
   const Image im("./Input/BostonRainbow-crop-400.png");
 
-  float theta = M_PI / 8;
+  // float theta = M_PI / 8;
+  float theta = 3.14159265 / 4;
 
   Image rot = rotate(im, theta);
   rot.write("./Output/testRotate.png");
