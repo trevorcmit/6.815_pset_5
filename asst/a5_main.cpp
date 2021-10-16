@@ -63,6 +63,14 @@ void testBilinearRescaling() {
   scaled.write("./Output/testLin.png");
 }
 
+void testBicubicRescaling() {
+  // Test Bicubic rescaling
+  const Image im("./Input/BostonRainbow-crop-400.png");
+  float B = 1/3, C = 1/3;
+  Image scaled = scaleBicubic(im, 3.5f, B, C);
+  scaled.write("./Output/testBicubic.png");
+}
+
 void testRotation() {
   const Image im("./Input/BostonRainbow-crop-400.png");
 
@@ -171,9 +179,10 @@ void testMorph() {
 int main() {
   clock_t start = clock();
   // cout << "nothing done in a5_main.cpp, debug me !" << endl;
-  testNearestNeighbor();
+  // testNearestNeighbor();
   // testBilinearInterpolation();
   // testBilinearRescaling();
+  testBicubicRescaling();
   // testRotation();
   // testVectorOperations();
   // testSegment();

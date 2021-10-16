@@ -20,11 +20,10 @@ Image scaleNN(const Image &im, float factor) {
   // create a new image that is factor times bigger than the input by using
   // nearest neighbor interpolation.
   Image output(floor(im.width() * factor), floor(im.height() * factor), im.channels()); // Scale by floor(factor)
-
-  for (int h = 0; h < output.height(); h++) {
+  for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
     for (int w = 0; w < output.width(); w++) {
       for (int c = 0; c < output.channels(); c++) {
-        output(w, h, c) = im(floor(w / factor), floor(h / factor), c);
+        output(w, h, c) = im.smartAccessor(round(w / factor), round(h / factor), c, true); // Nearest neighbor
       }
     }
   }
@@ -46,14 +45,28 @@ float interpolateLin(const Image &im, float x, float y, int z, bool clamp) {
   //  |           |    We are willing to share some color
   //                   information with * ! Of course, the pixel
   //                   closest to * should influence it more.
-  return 0.0f;
+  float E = (floor(x + 1) - x) * im.smartAccessor(floor(x), floor(y), z, clamp) \
+          + (x - floor(x)) * im.smartAccessor(floor(x + 1), floor(y), z, clamp); // Interpolate X above
+
+  float F = (floor(x + 1) - x) * im.smartAccessor(floor(x), floor(y + 1), z, clamp) \
+          + (x - floor(x)) * im.smartAccessor(floor(x + 1), floor(y + 1), z, clamp); // Interpolate X below
+
+  return (floor(y + 1) - y) * E + (y - floor(y)) * F; // Interpolate along Y
 }
 
 Image scaleLin(const Image &im, float factor) {
   // --------- HANDOUT  PS05 ------------------------------
   // create a new image that is factor times bigger than the input by using
   // bilinear interpolation
-  return im;
+  Image output(floor(im.width() * factor), floor(im.height() * factor), im.channels()); // Scale by floor(factor)
+  for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
+    for (int w = 0; w < output.width(); w++) {
+      for (int c = 0; c < output.channels(); c++) {
+        output(w, h, c) = interpolateLin(im, w/factor, h/factor, c, true);
+      }
+    }
+  }
+  return output;
 }
 
 Image scaleBicubic(const Image &im, float factor, float B, float C) {
@@ -62,6 +75,52 @@ Image scaleBicubic(const Image &im, float factor, float B, float C) {
   // a bicubic filter kernel with Mitchell and Netravali's parametrization
   // see "Reconstruction filters in computer graphics", Mitchell and Netravali
   // 1988 or http://entropymine.com/imageworsener/bicubic/
+
+  Image output(floor(im.width() * factor), floor(im.height() * factor), im.channels()); // Scale by floor(factor)
+  for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
+    for (int w = 0; w < output.width(); w++) {
+      for (int c = 0; c < output.channels(); c++) {
+
+        float sum;
+        int min_x = floor(w/factor), min_y = floor(h/factor);
+
+        for (int x = min_x - 3; x <= min_x + 3; x++) {
+          for (int y = min_y - 3; x <= min_y + 3; x++) {
+
+            float x_dist = abs(w/factor - x), y_dist = abs(h/factor - y);
+            float k_x, k_y;
+
+            if (x_dist < 1) {
+              k_x = (12 - 9*B - 6*C)*pow(x_dist,3) + (-18 + 12*B + 6*C)*pow(x_dist,2) + (6 - 2*B);
+            }
+            else if (x_dist < 2 && 1 <= x_dist) {
+              k_x = (-1*B - 6*C)*pow(x_dist,3) + (6*B + 30*C)*pow(x_dist,2) + (-12*B-48*C)*x_dist + (8*B + 24*C);
+            }
+            else {
+              k_x = 0.0f;
+            }
+
+            if (y_dist < 1) {
+              k_y = (12 - 9*B - 6*C)*pow(y_dist,3) + (-18 + 12*B + 6*C)*pow(y_dist,2) + (6 - 2*B);
+            }
+            else if (y_dist < 2 && 1 <= y_dist) {
+              k_y = (-1*B - 6*C)*pow(y_dist,3) + (6*B + 30*C)*pow(y_dist,2) + (-12*B-48*C)*y_dist + (8*B + 24*C);
+            }
+            else {
+              k_y = 0.0f;
+            }
+
+            sum += (1/36) * k_x * k_y * im.smartAccessor(x, y, c, true);
+          }
+        }
+
+        output(w, h, c) = sum;
+      }
+    }
+  }
+  return output;
+
+
   return im;
 }
 
@@ -75,12 +134,22 @@ Image scaleLanczos(const Image &im, float factor, float a) {
 Image rotate(const Image &im, float theta) {
   // --------- HANDOUT  PS05 ------------------------------
   // rotate an image around its center by theta
-
   // // center around which to rotate
-  // float centerX = (im.width()-1.0)/2.0;
-  // float centerY = (im.height()-1.0)/2.0;
+  float centerX = (im.width()-1.0)/2.0; // Initialize center values as coordinates (x,y)
+  float centerY = (im.height()-1.0)/2.0;
+  Image output(im.width(), im.height(), im.channels());
 
-  return im; // changeme
+  for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
+    for (int w = 0; w < output.width(); w++) {
+      for (int c = 0; c < output.channels(); c++) {
+
+        
+
+      }
+    }
+  }
+
+  return output; // Return output image
 }
 
 // -----------------------------------------------------
