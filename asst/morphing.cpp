@@ -15,44 +15,44 @@ using namespace std;
 Vec2f operator+(const Vec2f &a, const Vec2f &b) {
   // --------- HANDOUT  PS05 ------------------------------
   // Return the vector sum of a an b
-  return Vec2f(0.0f, 0.0f); // change me
+  return Vec2f(a.x + b.x, a.y + b.y); //  Return sum of components in each component
 }
 
 Vec2f operator-(const Vec2f &a, const Vec2f &b) {
   // --------- HANDOUT  PS05 ------------------------------
   // Return a-b
-  return Vec2f(0.0f, 0.0f); // change me
+  return Vec2f(a.x - b.x, a.y - b.y); //  Return difference of components in each component
 }
 
 Vec2f operator*(const Vec2f &a, float f) {
   // --------- HANDOUT  PS05 ------------------------------
   // Return a*f
-  return Vec2f(0.0f, 0.0f); // change me
+  return Vec2f(a.x * f, a.y * f); // Multiply each component by factor f
 }
 
 Vec2f operator/(const Vec2f &a, float f) {
   // --------- HANDOUT  PS05 ------------------------------
   // Return a/f
-  return Vec2f(0.0f, 0.0f); // change me
+  return Vec2f(a.x / f, a.y / f); // Divide each component by factor f
 }
 
 float dot(const Vec2f &a, const Vec2f &b) {
   // --------- HANDOUT  PS05 ------------------------------
   // Return the dot product of a and b.
-  return 0.0f; // change me
+  return (a.x * b.x) + (a.y * b.y); // Perform dot product calculation
 }
 
 float length(const Vec2f &a) {
   // --------- HANDOUT  PS05 ------------------------------
   // Return the length of a.
-  return 0.0f; // change me
+  return sqrt(pow(a.x, 2) + pow(a.y, 2)); // Square root of sum of squares of components
 }
 
 Vec2f perpendicular(const Vec2f &a) {
   // --------- HANDOUT  PS05 ------------------------------
   // Return a vector that is perpendicular to a.
   // Either direction is fine.
-  return a;
+  return Vec2f(-1.0f * a.y, a.x); // -1 times Y component for X component, X component for Y component
 }
 
 // The Segment constructor takes in 2 points P(x1,y1) and Q(x2,y2) corresponding
