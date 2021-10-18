@@ -71,6 +71,14 @@ void testBicubicRescaling() {
   scaled.write("./Output/testBicubic.png");
 }
 
+void testLanczosRescaling() {
+  // Test Bicubic rescaling
+  const Image im("./Input/BostonRainbow-crop-400.png");
+  float A = 3;
+  Image scaled = scaleLanczos(im, 3.5f, A);
+  scaled.write("./Output/testLanczos.png");
+}
+
 void testRotation() {
   const Image im("./Input/BostonRainbow-crop-400.png");
 
@@ -183,7 +191,8 @@ int main() {
   // testNearestNeighbor();
   // testBilinearInterpolation();
   // testBilinearRescaling();
-  testBicubicRescaling();
+  // testBicubicRescaling();
+  testLanczosRescaling();
   // testRotation();
   // testVectorOperations();
   // testSegment();

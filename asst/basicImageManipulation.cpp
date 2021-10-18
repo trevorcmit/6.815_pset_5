@@ -117,25 +117,66 @@ Image scaleBicubic(const Image &im, float factor, float B, float C) {
       }
     }
   }
-  return output;
-
-
-  return im;
+  return output; // Return output image
 }
 
 Image scaleLanczos(const Image &im, float factor, float a) {
   // --------- HANDOUT  PS05 ------------------------------
   // create a new image that is factor times bigger than the input by using
   // a Lanczos filter kernel
-  return im;
+  Image output(floor(im.width() * factor), floor(im.height() * factor), im.channels()); // Scale by floor(factor)
+
+  float pi = 3.14159265358979323846;
+  for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
+    for (int w = 0; w < output.width(); w++) {
+      for (int c = 0; c < output.channels(); c++) {
+
+        float sum = 0.0f;
+        int adj_x = floor(w/factor), adj_y = floor(h/factor); // Find integer center to iterate over
+        int adj_a = ceil(a); // Take ceiling of a so we can iterate, use ceiling to guarantee no cells are missed
+        for (int x = adj_x - adj_a; x <= adj_x + adj_a; x++) { // Iterate over extra cells to make sure all are accounted for
+          for (int y = adj_y - adj_a; y <= adj_y + adj_a; y++) {
+
+            float x_dist = abs(w/factor - x), y_dist = abs(h/factor - y); // Distance from cell to cell in kernel
+            float k_x, k_y;
+
+            // Apply formula in the X direction
+            if (adj_x - x == 0) {
+              k_x = 1.0f;
+            }
+            else if (x_dist < 1) {
+              k_x = (sin(pi * x_dist) / (pi * x_dist)) * (sin(pi * x_dist / a) / (pi * x_dist / a));
+            }
+            else {
+              k_x = 0.0f;
+            }
+
+            // Apply formula in the Y direction
+            if (adj_y - y == 0) {
+              k_y = 1.0f;
+            }
+            else if (y_dist < 1) { 
+              k_y = (sin(pi * y_dist) / (pi * y_dist)) * (sin(pi * y_dist / a) / (pi * y_dist / a));
+            }
+            else {
+              k_y = 0.0f;
+            }
+            sum += k_x * k_y * im.smartAccessor(x, y, c, true); // Multiply weights by pixel value
+          }
+        }
+        output(w, h, c) = sum; // Add summation to pixel 
+      }
+    }
+  }
+  return output; // Return output image
 }
 
 Image rotate(const Image &im, float theta) {
   // --------- HANDOUT  PS05 ------------------------------
   // rotate an image around its center by theta
   // center around which to rotate
-  float centerX = (im.width()-1.0) / 2.0f; // Initialize center values as coordinates (x,y)
-  float centerY = (im.height()-1.0) / 2.0f;
+  float centerX = (im.width() - 1.0) / 2.0f; // Initialize center values as coordinates (x,y)
+  float centerY = (im.height() - 1.0) / 2.0f;
   Image output(im.width(), im.height(), im.channels()); // Initialize output of the same size
   output.set_color(); // Set to all black for each channel
 
