@@ -135,6 +135,15 @@ void testSegment() {
   // are the u,v coordinates meaningful?
   // What should be u and v for P,Q ?
   // Come up with a few test cases !
+
+  Segment seg(Vec2f(4.0f, 3.0f), Vec2f(7.0f, 9.0f));
+
+  Vec2f uv = seg.XtoUV(Vec2f(5.0f, 5.0f));
+  Vec2f x  = seg.UVtoX(uv);
+
+  cout << "Original = <5.0, 5.0>" << endl; 
+  cout << "XtoUV = <" << uv.x << " " << uv.y << ">" << endl;
+  cout << "UVtoX = <" << x.x << " " << x.y << ">" << endl;
 }
 
 void testWarpBy1() {
@@ -192,10 +201,10 @@ int main() {
   // testBilinearInterpolation();
   // testBilinearRescaling();
   // testBicubicRescaling();
-  testLanczosRescaling();
+  // testLanczosRescaling();
   // testRotation();
   // testVectorOperations();
-  // testSegment();
+  testSegment();
   // testWarpBy1();
   // testWarp();
   // testMorph();

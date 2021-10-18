@@ -63,6 +63,9 @@ Segment::Segment(Vec2f P_, Vec2f Q_) : P(P_), Q(Q_) {
   // // and Q_, so you don't have to do it in the body of the constructor.
   // You should:
   // * Initialize the local frame e1,e2 (see header file)
+  Vec2f PQ = Q - P;
+  Vec2f e1 = PQ / length(PQ);   // Unit vector setting orthonormal frame
+  Vec2f e2 = perpendicular(PQ); // Completes orthonormal frame
 }
 
 Vec2f Segment::XtoUV(Vec2f X) const {
@@ -79,7 +82,9 @@ Vec2f Segment::XtoUV(Vec2f X) const {
   //                    u=1
   //
   // * Be careful with the different normalization for u and v
-  return Vec2f(0.0f, 0.0f); // changeme
+  float u = dot(X - P, Q - P)                / pow(length(Q - P), 2);
+  float v = dot(X - P, perpendicular(Q - P)) / length(Q - P); 
+  return Vec2f(u, v); // Return both u and v
 }
 
 Vec2f Segment::UVtoX(Vec2f uv) const {
@@ -87,7 +92,9 @@ Vec2f Segment::UVtoX(Vec2f uv) const {
   // compute the (x, y) position of a point given by the (u,v)
   // location relative to this segment.
   // * Be careful with the different normalization for u and v
-  return Vec2f(0.0f, 0.0f);
+  Vec2f x = (Q - P) * uv.x; //
+  Vec2f y = (perpendicular(Q - P) * uv.y) / length(Q - P); 
+  return P + x + y;
 }
 
 float Segment::distance(Vec2f X) const {
