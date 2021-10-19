@@ -196,7 +196,6 @@ Image rotate(const Image &im, float theta) {
       }
     }
   }
-
   return output; // Return output image
 }
 

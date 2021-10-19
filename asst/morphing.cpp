@@ -101,29 +101,87 @@ float Segment::distance(Vec2f X) const {
   // --------- HANDOUT  PS05 ------------------------------
   // Implement distance from a point X(x,y) to the segment. Remember the 3
   // cases from class.
-  return 0.0f;
+  Vec2f uv = XtoUV(X);
+  // if (dot(uv, Q - P) == 1) { // Case where X is on the segment definition itself
+  //   return 0.0f;
+  // }
+  // else if (dot(uv, Q - P) == 0) { // Case where X is perfectly perpendicular to segment space (e1->)
+  //   return length(uv);
+  // }
+  // else { // Every other case
+  //   float theta = acos(dot(uv, Q - P) / (length(Q - P) + length(uv))); // Angle between PQ-> and X in segment space
+  //   return sin(theta) * length(uv);
+  // }
+  if (uv.x > 1) {
+    return sqrt(pow(Q.x - X.x, 2) + pow(Q.y - X.y, 2));
+  }
+  else if (uv.x < 0) {
+    return sqrt(pow(P.x - X.x, 2) + pow(P.y - X.y, 2));
+  }
+  else {
+    return abs(uv.y);
+  }
 }
 
 Image warpBy1(const Image &im, const Segment &segBefore,
               const Segment &segAfter) {
   // --------- HANDOUT  PS05 ------------------------------
   // Warp an entire image according to a pair of segments.
-  return im;
+  Image output(im.width(), im.height(), im.channels());
+  for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
+    for (int w = 0; w < output.width(); w++) {
+      Vec2f coords_xy = Vec2f(w, h);
+      Vec2f coords_uv = segAfter.XtoUV(coords_xy);
+      Vec2f source_xy = segBefore.UVtoX(coords_uv);
+      for (int c = 0; c < output.channels(); c++) {
+        output(w, h, c) = interpolateLin(im, source_xy.x, source_xy.y, c, true);
+      }
+    }
+  }
+  return output; 
 }
 
 float Segment::weight(Vec2f X, float a, float b, float p) const {
   // --------- HANDOUT  PS05 ------------------------------
   // compute the weight of a segment to a point X(x,y) given the weight
   // parameters a,b, and p (see paper for details).
-  return 1.0f; // changeme
+  // cout << "dist = " << distance(X) << endl;
+  return pow(
+    pow(length(X), p) / (a + distance(X)), b
+  );
 }
 
 Image warp(const Image &im, const vector<Segment> &src_segs,
            const vector<Segment> &dst_segs, float a, float b, float p) {
   // --------- HANDOUT  PS05 ------------------------------
-  // Warp an image according to a vector of before and after segments using
-  // segment weighting
-  return im;
+  // Warp an image according to a vector of before and after segments using segment weighting
+  Image output(im.width(), im.height(), im.channels());
+
+  for (int h = 0; h < output.height(); h++) { // Iterate over all pixels in the output image
+    for (int w = 0; w < output.width(); w++) {
+
+      float dsum_x = 0.0f, dsum_y = 0.0f, weightsum = 0.0f; // Initialize sum values
+      Vec2f coords_xy = Vec2f(w, h);                        // Store coords outside of loop since they are static
+      for (int i = 0; i < src_segs.size(); i++) {
+        Vec2f coords_uv = dst_segs.at(i).XtoUV(coords_xy);        // Calculate u,v based on P_i Q_i
+        Vec2f source_xy = src_segs.at(i).UVtoX(coords_uv);        // Calculate X_i' based on u,v and P_i' Q_i'
+        Vec2f displace = source_xy - coords_xy;                   // Calculate displacement D_i = X_i' - X_i
+        float weight = dst_segs.at(i).weight(coords_xy, a, b, p); // Calculate weight of vector
+
+        dsum_x += displace.x * weight; // Add Displacement times Weight to DSUM metric
+        dsum_y += displace.y * weight;
+        weightsum += weight;           // Add weight to weightsum metric
+        // cout << "w = " << weight;
+      }
+      float x_prime = w + (dsum_x / weightsum); // Find source image pixel to draw from
+      float y_prime = h + (dsum_y / weightsum);
+      // cout << "(" << x_prime << "," << y_prime << ")" << endl;
+      for (int c = 0; c < output.channels(); c++) { // Pull pixel for each channel
+        output(w, h, c) = interpolateLin(im, x_prime, y_prime, c, true);
+      }
+    }
+  }
+  return output; // Return output image
 }
 
 vector<Image> morph(const Image &im_before, const Image &im_after,
@@ -134,5 +192,29 @@ vector<Image> morph(const Image &im_before, const Image &im_after,
   // return a vector of N+2 images: the two inputs plus N images that morphs
   // between im_before and im_after for the corresponding segments. im_before
   // should be the first image, im_after the last.
-  return vector<Image>();
+  compareDimensions(im_before, im_after); // Check for mismatched dimensions
+
+  float float_n = static_cast<float>(N); // Case N as a float to use in fractional calculations
+  vector<Image>output = {im_before};     // Initialize output array with first image added to it
+  float time = 1.0f / (float_n + 1.0f);  // Calculate time increment as a float
+
+  for (int n = 1; n < N + 1; n++) { // Iterate over all number of images required to span before to after
+    vector<Segment> current_segs = {};
+    for (int i = 0; i < segs_before.size(); i++) { // For each segment in the sequence...
+      current_segs.push_back(                      // Add partial amount of difference between before/after
+        Segment(
+          Vec2f(segs_before.at(i).getP() + (segs_after.at(i).getP() - segs_before.at(i).getP()) * time * n), 
+          Vec2f(segs_before.at(i).getQ() + (segs_after.at(i).getQ() - segs_before.at(i).getQ()) * time * n)
+        )
+      );
+    }
+    Image new_before = warp(im_before, segs_before, current_segs, a, b, p); // Warp before image to current segs
+    Image new_after  = warp(im_after, segs_after, current_segs, a, b, p);   // Warp after image to current segs
+
+    output.push_back( // Do linear interpolation of before and after image based on time increment
+      new_before * ((float_n + 1 - n)/(float_n + 1)) + new_after * ((n)/(float_n + 1))
+    );
+  }
+  output.push_back(im_after); // Add input after image
+  return output;
 }

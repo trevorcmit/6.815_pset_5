@@ -136,7 +136,7 @@ void testSegment() {
   // What should be u and v for P,Q ?
   // Come up with a few test cases !
 
-  Segment seg(Vec2f(4.0f, 3.0f), Vec2f(7.0f, 9.0f));
+  Segment seg(Vec2f(4.0f, 3.0f), Vec2f(7.0f, 8.0f));
 
   Vec2f uv = seg.XtoUV(Vec2f(5.0f, 5.0f));
   Vec2f x  = seg.UVtoX(uv);
@@ -144,24 +144,56 @@ void testSegment() {
   cout << "Original = <5.0, 5.0>" << endl; 
   cout << "XtoUV = <" << uv.x << " " << uv.y << ">" << endl;
   cout << "UVtoX = <" << x.x << " " << x.y << ">" << endl;
+
+  cout << endl << "Distance: " << seg.distance(Vec2f(5.0f, 5.0f)) << endl;
 }
 
 void testWarpBy1() {
   // Test warpBy1 ----------------------------------
   Image fredo("./Input/fredo2.png");
+  Image bear("./Input/bear.png");
 
   // define before and after segments
   Segment segBefore(Vec2f(81, 105), Vec2f(122, 112));
   Segment segAfter(Vec2f(131, 168), Vec2f(134, 127));
 
+  Segment bearb(Vec2f(0, 0), Vec2f(10, 0));
+  Segment beara(Vec2f(10,10), Vec2f(30,15));
+
   // warp
   Image warp1 = warpBy1(fredo, segBefore, segAfter);
+  Image warpbear = warpBy1(bear, bearb, beara);
   warp1.write("./Output/fredo_upside_down.png");
+  warpbear.write("./Output/bear_warp.png");
   // ------------------------------------------------
 }
 
 void testWarp() {
-  // Make your own test !
+  // Test warpBy1 ----------------------------------
+  // Image fredo("./Input/fredo2.png");
+  Image bear("./Input/bear.png");
+
+  // define before and after segments
+  // Segment segBefore(Vec2f(81, 105), Vec2f(122, 112));
+  // Segment segAfter(Vec2f(131, 168), Vec2f(134, 127));
+
+  Segment bearb1(Vec2f(0, 0), Vec2f(10, 0));
+  Segment beara1(Vec2f(10, 10), Vec2f(30, 15));
+
+  Segment bearb2(Vec2f(5, 5), Vec2f(20, 8));
+  Segment beara2(Vec2f(10, 15), Vec2f(20, 30));
+
+  vector<Segment> dst = {beara1, beara2};
+  vector<Segment> src = {bearb1, bearb2};
+
+  Image out = warp(bear, src, dst);
+
+  // warp
+  // Image warp1 = warpBy1(fredo, segBefore, segAfter);
+  // Image warpbear = warpBy1(bear, bearb, beara);
+  // warp1.write("./Output/fredo_upside_down.png");
+  out.write("./Output/bear_warp_weighted.png");
+  // ------------------------------------------------
 }
 
 void testMorph() {
@@ -178,7 +210,7 @@ void testMorph() {
   segsAfter.push_back(Segment(Vec2f(137, 94), Vec2f(152, 79)));
 
   // This should monsterify Fredo a little.
-  vector<Image> out = morph(fredo, werewolf, segsBefore, segsAfter, 5);
+  vector<Image> out = morph(fredo, werewolf, segsBefore, segsAfter, 1);
 
   // This is how you can write an image sequence
   for (int i = 0; i < (int)out.size(); ++i) {
@@ -204,10 +236,10 @@ int main() {
   // testLanczosRescaling();
   // testRotation();
   // testVectorOperations();
-  testSegment();
+  // testSegment();
   // testWarpBy1();
   // testWarp();
-  // testMorph();
+  testMorph();
 
   clock_t end = clock();
   double duration = (end - start) * 1.0f / CLOCKS_PER_SEC;
