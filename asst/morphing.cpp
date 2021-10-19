@@ -101,17 +101,7 @@ float Segment::distance(Vec2f X) const {
   // --------- HANDOUT  PS05 ------------------------------
   // Implement distance from a point X(x,y) to the segment. Remember the 3
   // cases from class.
-  Vec2f uv = XtoUV(X);
-  // if (dot(uv, Q - P) == 1) { // Case where X is on the segment definition itself
-  //   return 0.0f;
-  // }
-  // else if (dot(uv, Q - P) == 0) { // Case where X is perfectly perpendicular to segment space (e1->)
-  //   return length(uv);
-  // }
-  // else { // Every other case
-  //   float theta = acos(dot(uv, Q - P) / (length(Q - P) + length(uv))); // Angle between PQ-> and X in segment space
-  //   return sin(theta) * length(uv);
-  // }
+  Vec2f uv = XtoUV(X); // If else if else statement for the three cases from class and in the paper
   if (uv.x > 1) {
     return sqrt(pow(Q.x - X.x, 2) + pow(Q.y - X.y, 2));
   }
@@ -145,10 +135,7 @@ float Segment::weight(Vec2f X, float a, float b, float p) const {
   // --------- HANDOUT  PS05 ------------------------------
   // compute the weight of a segment to a point X(x,y) given the weight
   // parameters a,b, and p (see paper for details).
-  // cout << "dist = " << distance(X) << endl;
-  return pow(
-    pow(length(X), p) / (a + distance(X)), b
-  );
+  return pow(pow(length(X), p) / (a + distance(X)), b);
 }
 
 Image warp(const Image &im, const vector<Segment> &src_segs,
@@ -171,11 +158,9 @@ Image warp(const Image &im, const vector<Segment> &src_segs,
         dsum_x += displace.x * weight; // Add Displacement times Weight to DSUM metric
         dsum_y += displace.y * weight;
         weightsum += weight;           // Add weight to weightsum metric
-        // cout << "w = " << weight;
       }
       float x_prime = w + (dsum_x / weightsum); // Find source image pixel to draw from
       float y_prime = h + (dsum_y / weightsum);
-      // cout << "(" << x_prime << "," << y_prime << ")" << endl;
       for (int c = 0; c < output.channels(); c++) { // Pull pixel for each channel
         output(w, h, c) = interpolateLin(im, x_prime, y_prime, c, true);
       }
